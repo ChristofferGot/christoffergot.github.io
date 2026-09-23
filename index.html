@@ -73,7 +73,7 @@
 
     #secretHint {
       top: 125px;
-      font-size: 1.1em;
+      font-size: 1.3em;
       color: #7EC8E3;
       font-style: italic;
     }
@@ -252,8 +252,22 @@
     ];
     World.add(world, walls);
 
-    let respectCount = 0;
+    // --- Shared global "respects" counter (powered by Abacus, a free no-auth counting API) ---
+    // This is the number everyone sees at the top. Change these two values to something
+    // unique to your site if you want to avoid any chance of collision with someone
+    // else's counter on the same free service.
+    const COUNTER_NAMESPACE = "titanholo-ciggydogg";
+    const COUNTER_KEY = "respect-count";
+
+    // --- Per-visitor session triggers (reset every time the page reloads) ---
+    const MAC10_TRIGGER = 5;
+    const RICKROLL_TRIGGER = 50;
+    const EMOJI_COUNT = 10;
+
+    let respectCount = 0;   // shared total, shown to everyone
+    let sessionClicks = 0;  // this visitor's own click count this session
     let mac10Spawned = false;
+    let rickrolled = false;
 
     function loadImage(src) {
       return new Promise(res => {
@@ -349,65 +363,70 @@
       setTimeout(() => plusOne.remove(), 1500);
     }
 
-    function updateRespectText() {
-      const hint = document.getElementById('secretHint');
-      const fCount = document.getElementById('fCount');
-
-      fCount.textContent = respectCount;
-
-      if (respectCount >= 250) {
-        hint.innerHTML = '<strong>Dumbass...</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 220) {
-        hint.innerHTML = '<strong>I warned you</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 200) {
-        hint.innerHTML = '<strong>You\'ve seen everything. Please stop.</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 150) {
-        hint.innerHTML = '<strong>There\'s nothing more to see here</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 120) {
-        hint.innerHTML = '<strong>Alright dude it\'s enough</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 100) {
-        hint.innerHTML = '<strong>Damn you really wanted that holo huh...</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 75) {
-        hint.innerHTML = '<strong>You really wanna keep going?</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 67) {
-        hint.innerHTML = '<strong>GG\'s</strong>';
-        hint.style.display = 'block';
-      } else if (respectCount >= 3) {
-        hint.textContent = "What is Mark's favourite number?";
-        hint.style.display = 'block';
-      } else {
-        hint.style.display = 'none';
-      }
+    function updateFCountDisplay() {
+      document.getElementById('fCount').textContent = respectCount;
     }
 
+    function showHint(text) {
+      const hint = document.getElementById('secretHint');
+      hint.textContent = text;
+      hint.style.display = 'block';
+    }
+
+    function repeatEmoji(emoji, count) {
+      return Array(count).fill(emoji).join(' ');
+    }
+
+    // Fetches the current shared count on page load without incrementing it.
+    async function fetchInitialCount() {
+      try {
+        const res = await fetch(`https://abacus.jasoncameron.dev/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+        const data = await res.json();
+        respectCount = data.value || 0;
+      } catch (err) {
+        console.warn("Could not reach shared counter, starting from 0:", err);
+        respectCount = 0;
+      }
+      updateFCountDisplay();
+    }
+
+    // Handles one visitor's F-press: updates the shared count, and checks this
+    // visitor's own session click count against the Mac10 / rickroll triggers.
     async function updateRespect(clickX, clickY) {
-      respectCount++;
-      updateRespectText();
-      
       createSparkles(clickX, clickY);
       showPlusOne(clickX, clickY);
 
-      if (respectCount === 67 && !mac10Spawned) {
+      sessionClicks++;
+
+      // Fire session-based triggers synchronously (before any awaits) so the
+      // click's user-gesture context carries through to window.open below.
+      if (sessionClicks === MAC10_TRIGGER && !mac10Spawned) {
         mac10Spawned = true;
         vineBoom.play().catch(() => {});
-        await createBall(0, 120, "Mac10Heat.png");
+        showHint(repeatEmoji('😂', EMOJI_COUNT));
+        createBall(0, 120, "Mac10Heat.png");
       }
 
-      if (respectCount === 250) {
-        setTimeout(() => {
-          const newWindow = window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
-          if (!newWindow) {
-            window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-          }
-        }, 1000);
+      if (sessionClicks === RICKROLL_TRIGGER && !rickrolled) {
+        rickrolled = true;
+        showHint(repeatEmoji('☠️', EMOJI_COUNT));
+        const embedUrl = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=0';
+        const newWindow = window.open(embedUrl, '_blank');
+        if (!newWindow) {
+          window.location.href = embedUrl;
+        }
       }
+
+      try {
+        const res = await fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+        const data = await res.json();
+        respectCount = data.value;
+      } catch (err) {
+        console.warn("Could not reach shared counter, counting locally instead:", err);
+        respectCount++;
+      }
+
+      updateFCountDisplay();
     }
 
     function drawTrails(context) {
@@ -454,6 +473,7 @@
 
     async function start() {
       await initBalls();
+      await fetchInitialCount();
 
       const mouse = Mouse.create(render.canvas);
       const mouseConstraint = MouseConstraint.create(engine, {
@@ -495,9 +515,6 @@
         Body.setVelocity(b, { x: (Math.random() - 0.5) * 10, y: Math.random() * -10 });
       }
 
-      const fCount = document.getElementById("fCount");
-      fCount.textContent = respectCount;
-
       document.getElementById("pressF").addEventListener("click", (e) => {
         updateRespect(e.clientX, e.clientY);
       });
@@ -514,16 +531,14 @@
           World.remove(world, ball);
         }
         balls.length = 0;
-        
-        const hadMac10 = respectCount >= 67;
-        mac10Spawned = false;
-        
+
+        const hadMac10 = mac10Spawned;
+
         initBalls().then(() => {
           if (hadMac10) {
-            mac10Spawned = true;
             createBall(0, 120, "Mac10Heat.png");
           }
-          
+
           for (const b of balls) {
             Body.setVelocity(b, { x: (Math.random() - 0.5) * 10, y: Math.random() * -10 });
           }
