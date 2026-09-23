@@ -269,6 +269,10 @@
     let mac10Spawned = false;
     let rickrolled = false;
 
+    // Every hit request is chained onto this promise so they always resolve
+    // in the order they were sent, instead of racing each other over the network.
+    let hitQueue = Promise.resolve();
+
     function loadImage(src) {
       return new Promise(res => {
         const img = new Image();
@@ -390,16 +394,39 @@
       updateFCountDisplay();
     }
 
-    // Handles one visitor's F-press: updates the shared count, and checks this
-    // visitor's own session click count against the Mac10 / rickroll triggers.
-    async function updateRespect(clickX, clickY) {
+    // Queues one increment request onto the shared counter. Chaining these onto
+    // hitQueue guarantees they fire in the order they were clicked, and the
+    // Math.max guard means a stray out-of-order response can never make the
+    // displayed number go backward or stall.
+    function queueHit() {
+      hitQueue = hitQueue.then(async () => {
+        try {
+          const res = await fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+          const data = await res.json();
+          if (typeof data.value === "number") {
+            respectCount = Math.max(respectCount, data.value);
+          } else {
+            respectCount++;
+          }
+        } catch (err) {
+          console.warn("Could not reach shared counter, counting locally instead:", err);
+          respectCount++;
+        }
+        updateFCountDisplay();
+      });
+      return hitQueue;
+    }
+
+    // Handles one visitor's F-press: queues the shared-count update, and checks
+    // this visitor's own session click count against the Mac10 / rickroll triggers.
+    function updateRespect(clickX, clickY) {
       createSparkles(clickX, clickY);
       showPlusOne(clickX, clickY);
 
       sessionClicks++;
 
-      // Fire session-based triggers synchronously (before any awaits) so the
-      // click's user-gesture context carries through to window.open below.
+      // Fire session-based triggers synchronously so the click's user-gesture
+      // context carries through to window.open below.
       if (sessionClicks === MAC10_TRIGGER && !mac10Spawned) {
         mac10Spawned = true;
         vineBoom.play().catch(() => {});
@@ -417,16 +444,7 @@
         }
       }
 
-      try {
-        const res = await fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
-        const data = await res.json();
-        respectCount = data.value;
-      } catch (err) {
-        console.warn("Could not reach shared counter, counting locally instead:", err);
-        respectCount++;
-      }
-
-      updateFCountDisplay();
+      queueHit();
     }
 
     function drawTrails(context) {
