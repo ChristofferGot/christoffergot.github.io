@@ -156,6 +156,32 @@
         transform: translate(var(--tx), var(--ty)) scale(0);
       }
     }
+
+    #madeBy {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fffce8;
+      opacity: 0;
+      font-size: 0.9em;
+      font-style: italic;
+      cursor: pointer;
+      z-index: 6;
+      pointer-events: none;
+      transition: opacity 1.2s ease, color 0.3s ease, transform 0.3s ease;
+    }
+
+    #madeBy.visible {
+      opacity: 0.7;
+      pointer-events: auto;
+    }
+
+    #madeBy:hover {
+      opacity: 1;
+      color: #DD403A;
+      transform: translateX(-50%) scale(1.08);
+    }
   </style>
 </head>
 <body>
@@ -175,6 +201,8 @@
   <button class="top-button" id="addStickerBtn">+1 Sticker</button>
 
   <canvas id="physicsCanvas"></canvas>
+
+  <div id="madeBy">made by CiggyDogg</div>
 
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
   <script>
@@ -539,6 +567,15 @@
     }
 
     start();
+
+    setTimeout(() => {
+      const madeBy = document.getElementById("madeBy");
+      madeBy.classList.add("visible");
+    }, 6000);
+
+    document.getElementById("madeBy").addEventListener("click", () => {
+      window.open("https://guns.lol/ciggydogg", "_blank");
+    });
   </script>
 </body>
 </html>
