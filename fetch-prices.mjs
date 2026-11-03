@@ -110,6 +110,7 @@ const SITES = [
 ];
 
 /* ---------- run every site on its own ---------- */
+console.log(`fetch-prices version 2026-11-03-b | CSFLOAT_KEY passed in: ${process.env.CSFLOAT_KEY ? 'yes' : 'no'}`);
 const names = STICKERS.map(s => s.hash);
 const active = SITES.filter(s => {
   if (s.disabled && !process.env.FORCE_ALL_SITES) { console.log(`${s.name}: skipped (${s.disabled})`); return false; }
