@@ -75,6 +75,7 @@ const SITES = [
   },
   {
     id: 'dmarket', name: 'DMarket', home: 'https://dmarket.com/',
+    disabled: 'DMarket retired the endpoint this used (HTTP 410) and the replacement needs a signed API key',
     async fetch(names) {
       const base = process.env.DMARKET_BASE || 'https://api.dmarket.com';
       const out = new Map();
@@ -109,8 +110,10 @@ const SITES = [
 ];
 
 /* ---------- run every site on its own ---------- */
+console.log(`fetch-prices version 2026-11-03-b | CSFLOAT_KEY passed in: ${process.env.CSFLOAT_KEY ? 'yes' : 'no'}`);
 const names = STICKERS.map(s => s.hash);
 const active = SITES.filter(s => {
+  if (s.disabled && !process.env.FORCE_ALL_SITES) { console.log(`${s.name}: skipped (${s.disabled})`); return false; }
   if (s.needsKey && !process.env[s.needsKey]) { console.log(`${s.name}: skipped (no ${s.needsKey} secret set)`); return false; }
   return true;
 });
