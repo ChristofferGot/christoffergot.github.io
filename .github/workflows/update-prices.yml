@@ -2,8 +2,8 @@ name: Update prices
 
 on:
   schedule:
-    - cron: '17 */3 * * *'   # every 3 hours
-  workflow_dispatch:          # lets you run it by hand from the Actions tab
+    - cron: '7 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,7 +24,7 @@ jobs:
       - name: Fetch prices
         run: node scripts/fetch-prices.mjs
         env:
-          PRICEMPIRE_KEY: ${{ secrets.PRICEMPIRE_KEY }}
+          CSFLOAT_KEY: ${{ secrets.CSFLOAT_KEY }}
       - name: Save and publish
         env:
           GH_TOKEN: ${{ github.token }}
