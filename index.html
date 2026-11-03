@@ -638,7 +638,7 @@ function render() {
 
   $('note').textContent = e.demo
     ? 'Prices on this page are generated sample data. Set CONFIG.source to "file" in the page source to show real prices.'
-    : `Lowest listing per market, in USD. Updated every few hours, last on ${new Date(e.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}. The filled line is the lowest price across all markets since release, and the market lines start when price tracking began.`;
+    : `Lowest listing per market, in USD. Checked every hour, last on ${new Date(e.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}. The filled line is the lowest price across all markets since release, and the market lines start when price tracking began.`;
   drawChart();
 }
 $('legend').addEventListener('click', e => {
