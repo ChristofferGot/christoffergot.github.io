@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TITAN HOLO</title>
+  <meta name="description" content="Never forget the Titan Holo incident. Live Katowice 2014 sticker prices across every market." />
+  <meta name="theme-color" content="#0f0c12" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://abacus.jasoncameron.dev" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" />
+  <style>
+    :root {
+      --bg: #0f0c12;
+      --bg-2: #15111a;
+      --raise: #1c1722;
+      --line: rgba(236, 230, 214, 0.10);
+      --line-2: rgba(236, 230, 214, 0.22);
+      --text: #ece6d6;
+      --muted: rgba(236, 230, 214, 0.56);
+      --red: #e0463f;
+      --ice: #7EC8E3;
+      --up: #5fd38d;
+      --down: #ff7a73;
+      --accent: #5b9bff;           /* swapped per sticker by JS */
+      --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+      --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0; color: var(--text); background: var(--bg);
+      font-family: var(--body); line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; }
+    h1, h2, h3, p { margin: 0; }
+    :focus-visible { outline: 2px solid var(--ice); outline-offset: 3px; border-radius: 6px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* =============== HERO =============== */
+    .hero {
+      position: relative; min-height: 100svh; overflow: hidden; isolation: isolate;
+      display: flex; flex-direction: column; align-items: center;
+      padding: clamp(28px, 6vh, 64px) 16px 84px;
+      background:
+        radial-gradient(60% 45% at 50% 52%, rgba(126, 200, 227, 0.09), transparent 70%),
+        var(--bg);
+    }
+    .hero-text { position: relative; z-index: 5; text-align: center; }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 800; font-stretch: 78%;
+      font-size: clamp(2.8rem, 9vw, 6rem);
+      line-height: .95; letter-spacing: -0.035em;
+      display: inline-flex; align-items: center; gap: .18em;
+    }
+    .hero h1 .hash { color: var(--red); }
+    .hero h1 img { width: .8em; height: .8em; object-fit: contain; }
+
+    #pressF {
+      margin-top: 18px; cursor: pointer;
+      background: rgba(236,230,214,.04); border: 1px solid var(--line-2); border-radius: 999px;
+      padding: 9px 20px; font-size: 1rem; font-weight: 500;
+      transition: background .2s, border-color .2s;
+    }
+    #pressF kbd {
+      font: inherit; font-weight: 700; color: var(--red);
+      border: 1px solid currentColor; border-radius: 5px; padding: 0 6px; margin: 0 2px;
+    }
+    #pressF b { font-variant-numeric: tabular-nums; margin-left: 4px; }
+    #pressF:hover { background: rgba(236,230,214,.09); border-color: var(--text); }
+    #secretHint { margin-top: 8px; min-height: 1.6em; color: var(--ice); font-style: italic; }
+
+    /* The piece of media behind the stickers: png, gif, webp, mp4 or webm */
+    .media {
+      position: relative; z-index: 1; margin: 22px 0 0;
+      border-radius: 18px; overflow: hidden; pointer-events: none;
+      border: 1px solid var(--line-2);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 30px 80px -20px rgba(126,200,227,.28);
+      line-height: 0;
+    }
+    .media > img, .media > video {
+      display: block; aspect-ratio: 16 / 9; width: min(62vw, 720px, calc(46svh * 16 / 9)); height: auto;
+      object-fit: contain; background: #0b090e;
+    }
+    #physicsCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; touch-action: pan-y; }
+
+    .hero-tools { position: absolute; left: 16px; bottom: 18px; z-index: 6; display: flex; gap: 8px; }
+    .ghost {
+      background: rgba(15,12,18,.7); border: 1px solid var(--line-2); border-radius: 8px;
+      padding: 7px 13px; font-size: .88rem; font-weight: 500; cursor: pointer;
+      backdrop-filter: blur(6px); transition: border-color .2s, background .2s;
+    }
+    .ghost:hover { border-color: var(--text); background: rgba(236,230,214,.1); }
+    .scroll-cue {
+      position: absolute; left: 50%; bottom: 18px; translate: -50% 0; z-index: 6;
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--text); text-decoration: none; font-weight: 500; font-size: .95rem;
+      padding: 8px 16px; border-radius: 999px;
+      background: rgba(15,12,18,.7); border: 1px solid var(--line-2); backdrop-filter: blur(6px);
+    }
+    .scroll-cue:hover { border-color: var(--text); }
+    #madeBy {
+      position: absolute; right: 18px; bottom: 22px; z-index: 6;
+      background: none; border: 0; cursor: pointer; font-size: .82rem; color: var(--muted);
+      opacity: 0; pointer-events: none; transition: opacity 1.2s, color .25s;
+    }
+    #madeBy.visible { opacity: 1; pointer-events: auto; }
+    #madeBy:hover { color: var(--red); }
+    .plus-one, .sparkle { position: fixed; pointer-events: none; z-index: 20; }
+    .plus-one { color: var(--up); font-family: var(--display); font-size: 2em; font-weight: 800; text-shadow: 0 0 10px rgba(95,211,141,.7); animation: floatUp 1.5s ease-out forwards; }
+    @keyframes floatUp { to { opacity: 0; transform: translateY(-120px) scale(1.2); } }
+    .sparkle { animation: sparkleAnim .6s ease-out forwards; }
+    @keyframes sparkleAnim { to { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); } }
+
+    /* =============== MARKET =============== */
+    .market { background: var(--bg-2); border-top: 1px solid var(--line); padding: 40px 16px 88px; }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .topbar h2 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+    .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--up); animation: pulse 2s infinite; }
+    .dot.demo { background: #f2b24c; animation: none; }
+    .dot.err { background: var(--down); animation: none; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(95,211,141,.55); } 100% { box-shadow: 0 0 0 9px rgba(95,211,141,0); } }
+
+    /* slider */
+    .deck { display: grid; grid-template-columns: 48px 1fr 48px; gap: 16px; align-items: center; }
+    .nav {
+      width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+      background: transparent; border: 1px solid var(--line-2); transition: background .2s, border-color .2s, transform .15s;
+    }
+    .nav:hover { background: rgba(236,230,214,.08); border-color: var(--text); }
+    .nav:active { transform: scale(.94); }
+    .nav svg { width: 20px; height: 20px; }
+    .stage {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px;
+      touch-action: pan-y; transition: opacity .18s ease, transform .18s ease;
+    }
+    .stage.swap { opacity: 0; transform: translateX(var(--shift, 12px)); }
+    .art { position: relative; width: 132px; height: 132px; flex: none; }
+    .art::before {
+      content: ""; position: absolute; inset: -30%; z-index: 0;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 38%, transparent), transparent);
+    }
+    .art img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
+    .meta h3 {
+      font-family: var(--display); font-weight: 700; font-stretch: 85%;
+      font-size: clamp(1.7rem, 4.4vw, 2.9rem); line-height: 1.02; letter-spacing: -0.025em; margin: 4px 0 6px;
+    }
+    .meta .sub { color: var(--muted); }
+    .headline { text-align: right; }
+    .headline .big {
+      font-family: var(--display); font-weight: 700; font-stretch: 85%;
+      font-size: clamp(1.9rem, 4.6vw, 3.2rem); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+    }
+    .headline .under { margin-top: 8px; color: var(--muted); font-size: .92rem; }
+    .up { color: var(--up); } .down { color: var(--down); }
+
+    /* thumbnail rail */
+    .rail {
+      display: flex; gap: 4px; margin: 28px 0 0; overflow-x: auto; position: relative;
+      border-bottom: 1px solid var(--line); scrollbar-width: none; cursor: grab;
+      -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+    }
+    .rail.dragging { cursor: grabbing; user-select: none; }
+    .rail.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px); mask-image: linear-gradient(90deg, transparent 0, #000 48px); }
+    .rail.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent 100%); mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent 100%); }
+    .rail.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%); }
+    .rail::-webkit-scrollbar { display: none; }
+    .thumb {
+      flex: none; display: flex; align-items: center; gap: 10px;
+      background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      padding: 10px 14px; cursor: pointer; color: var(--muted); font-weight: 500; font-size: .92rem; white-space: nowrap;
+      transition: color .2s, border-color .2s;
+    }
+    .thumb img { width: 30px; height: 30px; object-fit: contain; }
+    .thumb:hover { color: var(--text); }
+    .thumb[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+
+    /* facts */
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); margin: 28px 0 8px; }
+    .fact { padding: 2px 20px; border-left: 1px solid var(--line); }
+    .fact:first-child { border-left: 0; padding-left: 0; }
+    .fact dt { color: var(--muted); font-size: .88rem; }
+    .fact dd { margin: 2px 0 0; font-family: var(--display); font-weight: 600; font-stretch: 90%; font-size: 1.45rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
+    /* chart */
+    .chart-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 20px; margin: 28px 0 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; }
+    .ranges { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; padding: 3px; gap: 2px; }
+    .range { background: none; border: 0; border-radius: 7px; padding: 5px 13px; cursor: pointer; font-size: .88rem; font-weight: 500; color: var(--muted); }
+    .range:hover { color: var(--text); }
+    .range[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
+    .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+    .legend button { display: flex; align-items: center; gap: 7px; background: none; border: 0; padding: 4px 0; cursor: pointer; font-size: .88rem; color: var(--text); }
+    .legend button i { width: 14px; height: 3px; border-radius: 2px; background: var(--c); }
+    .legend button[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; }
+    .legend button[aria-pressed="false"] i { opacity: .35; }
+    .chart-box { position: relative; height: clamp(260px, 42vw, 400px); }
+    #chart { width: 100%; height: 100%; display: block; }
+    #tip {
+      position: absolute; top: 6px; pointer-events: none; display: none; z-index: 2; min-width: 200px;
+      background: rgba(15,12,18,.94); border: 1px solid var(--line-2); border-radius: 10px;
+      padding: 9px 11px; font-size: .84rem; backdrop-filter: blur(6px);
+    }
+    #tip .t { color: var(--muted); margin-bottom: 5px; }
+    #tip .row { display: flex; justify-content: space-between; gap: 18px; font-variant-numeric: tabular-nums; }
+    #tip .row i { display: inline-block; width: 8px; height: 3px; border-radius: 2px; margin-right: 7px; vertical-align: middle; }
+
+    /* table */
+    .listings { margin-top: 36px; }
+    .listings h3 { font-family: var(--display); font-weight: 600; font-size: 1.25rem; margin-bottom: 6px; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; padding: 14px 12px 14px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 500; font-size: .86rem; }
+    .rk { width: 1%; padding-right: 14px; color: var(--muted); font-weight: 500; }
+    td.rk { font-weight: 600; }
+    tr.best td.rk { color: var(--up); }
+    .sub-h { color: var(--muted); font-size: .9rem; margin-bottom: 8px; }
+    .more { margin-top: 14px; background: none; border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 14px; font-size: .88rem; font-weight: 500; cursor: pointer; }
+    .more:hover { border-color: var(--text); background: rgba(236,230,214,.06); }
+    .num { text-align: right; padding-right: 0; padding-left: 20px; }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: rgba(236,230,214,.035); }
+    .mkt { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+    .mkt i { width: 4px; height: 18px; border-radius: 2px; background: var(--c); }
+    .tag { color: var(--up); border: 1px solid rgba(95,211,141,.4); border-radius: 6px; padding: 0 7px; font-size: .76rem; font-weight: 600; }
+    tr.best td:nth-child(2) { color: var(--up); }
+    .buy {
+      display: inline-block; text-decoration: none; color: var(--text); font-weight: 600; font-size: .88rem;
+      border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 14px; transition: background .2s, color .2s, border-color .2s;
+    }
+    .buy:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .note { color: var(--muted); font-size: .84rem; margin-top: 16px; max-width: 80ch; }
+    .skeleton { color: var(--muted); padding: 44px 0; text-align: center; }
+
+    @media (max-width: 760px) {
+      .deck { grid-template-columns: 1fr; }
+      .nav { display: none; }                      /* swipe or use the rail on phones */
+      .stage { grid-template-columns: auto 1fr; gap: 18px; }
+      .headline { grid-column: 1 / -1; text-align: left; }
+      .art { width: 92px; height: 92px; }
+      .facts { grid-template-columns: 1fr 1fr; gap: 16px 0; }
+      .fact:nth-child(3) { border-left: 0; padding-left: 0; }
+      .media > img, .media > video { width: min(84vw, calc(46svh * 16 / 9)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .dot { animation: none; }
+      .stage { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero" id="hero">
+  <div class="hero-text">
+    <h1><span><span class="hash">#</span>NeverForget</span><img src="clueless-aware.gif" alt="AWARE" width="64" height="64" decoding="async" /></h1>
+    <div><button id="pressF" type="button">Press <kbd>F</kbd> to pay respects <b id="fCount">0</b></button></div>
+    <p id="secretHint" aria-live="polite"></p>
+  </div>
+
+  <!-- MEDIA BEHIND THE STICKERS
+       Change the src to any of: .png  .gif  .webp  .mp4  .webm
+       GIFs animate and loop on their own. mp4/webm are swapped to a muted looping <video>. -->
+  <figure class="media" id="heroMedia">
+    <img id="heroMediaEl" src="hero.gif" alt="Opening the Katowice 2014 container and pulling a sticker" fetchpriority="high" decoding="async" />
+  </figure>
+
+  <canvas id="physicsCanvas" aria-hidden="true"></canvas>
+
+  <div class="hero-tools">
+    <button class="ghost" id="resetBtn" type="button">Reset stickers</button>
+    <button class="ghost" id="addStickerBtn" type="button">Add sticker</button>
+  </div>
+  <a class="scroll-cue" href="#market">See today’s prices
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </a>
+  <button id="madeBy" type="button">made by CiggyDogg</button>
+</header>
+
+<main class="market" id="market">
+  <div class="wrap">
+    <div class="topbar">
+      <h2>Sticker prices</h2>
+      <div class="status"><span class="dot demo" id="statusDot"></span><span id="statusText">Loading prices…</span></div>
+    </div>
+
+    <div class="deck" id="deck" role="group" aria-roledescription="carousel" aria-label="Katowice 2014 stickers">
+      <button class="nav" id="prev" type="button" aria-label="Previous sticker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+
+      <div class="stage" id="stage" aria-live="polite">
+        <div class="art"><img id="itemImg" alt="" width="132" height="132" decoding="async" /></div>
+        <div class="meta">
+          <h3 id="itemName"></h3>
+          <p class="sub" id="itemSub"></p>
+        </div>
+        <div class="headline">
+          <div class="big" id="bigPrice">—</div>
+          <p class="under" id="bigSub"></p>
+        </div>
+      </div>
+
+      <button class="nav" id="next" type="button" aria-label="Next sticker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="rail" id="rail" role="tablist" aria-label="Choose a sticker"></div>
+
+    <dl class="facts" id="facts"></dl>
+
+    <section aria-label="Price history">
+      <div class="chart-bar">
+        <div class="controls">
+          <div class="ranges" id="ranges" role="group" aria-label="Time range"></div>
+          <div class="ranges" id="scales" role="group" aria-label="Price scale">
+            <button class="range" type="button" data-s="lin" aria-pressed="true">Linear</button>
+            <button class="range" type="button" data-s="log" aria-pressed="false">Log</button>
+          </div>
+        </div>
+        <div class="legend" id="legend" role="group" aria-label="Markets shown"></div>
+      </div>
+      <div class="chart-box">
+        <canvas id="chart" role="img" aria-label="Line chart of the selected sticker's price by market"></canvas>
+        <div id="tip"></div>
+      </div>
+    </section>
+
+    <section class="listings" aria-label="Lowest price per market">
+      <h3>Lowest price per market</h3>
+      <p class="sub-h" id="rowsSub">The cheapest offers right now, cheapest first.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="rk">#</th><th>Market</th><th class="num">Lowest price</th><th class="num">vs. cheapest</th>
+              <th class="num">24h</th><th class="num">Listings</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"><tr><td colspan="7" class="skeleton">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <button class="more" id="moreRows" type="button" hidden></button>
+      <p class="note" id="note"></p>
+    </section>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+   CONFIG
+   source: 'demo' = generated sample data (labelled on the page)
+           'api'  = your own proxy endpoint; see fetchApi() / normalizeApi()
+   ===================================================================== */
+const CONFIG = {
+  source: 'file',                  // 'file' = data/prices.json (updated by GitHub Actions) | 'demo' | 'api'
+  dataUrl: 'data/prices.json',
+  apiUrl: '/api/sticker-prices',   // only used when source is 'api'
+  refreshMs: 60_000,
+};
+
+/* =====================================================================
+   STICKERS in the slider (order = slider order)
+   img     : put your PNG at this path. If the file is missing, a placeholder is shown.
+   hash    : the Steam market_hash_name, sent to your API in 'api' mode
+   base    : starting price for the demo data only
+   listMul : demo-only multiplier for how many listings exist
+   ===================================================================== */
+const ITEMS = [
+  { id: 'titan-holo',  name: 'Titan (Holo)',              mono: 'TI',   kind: 'Holo',  accent: '#5b9bff', base: 105000, listMul: 1, img: 'stickers/titan-holo.png',  hash: 'Sticker | Titan (Holo) | Katowice 2014' },
+  { id: 'ibp-holo',    name: 'iBUYPOWER (Holo)',          mono: 'iBP',  kind: 'Holo',  accent: '#59d98e', base: 90000,  listMul: 1, img: 'stickers/ibp-holo.png',    hash: 'Sticker | iBUYPOWER (Holo) | Katowice 2014' },
+  { id: 'ldlc-holo',   name: 'Team LDLC.com (Holo)',      mono: 'LDLC', kind: 'Holo',  accent: '#ff6f6a', base: 14000,  listMul: 2, img: 'stickers/ldlc-holo.png',   hash: 'Sticker | Team LDLC.com (Holo) | Katowice 2014' },
+  { id: 'ldlc-paper',  name: 'Team LDLC.com',             mono: 'LDLC', kind: 'Paper', accent: '#ff9d8f', base: 900,    listMul: 8, img: 'stickers/ldlc-paper.png',  hash: 'Sticker | Team LDLC.com | Katowice 2014' },
+  { id: 'nip-holo',    name: 'Ninjas in Pyjamas (Holo)',  mono: 'NiP',  kind: 'Holo',  accent: '#ffcf5a', base: 18600,  listMul: 2, img: 'stickers/nip-holo.png',    hash: 'Sticker | Ninjas in Pyjamas (Holo) | Katowice 2014' },
+  { id: 'nip-paper',   name: 'Ninjas in Pyjamas',         mono: 'NiP',  kind: 'Paper', accent: '#ffe08f', base: 1100,   listMul: 8, img: 'stickers/nip-paper.png',   hash: 'Sticker | Ninjas in Pyjamas | Katowice 2014' },
+  { id: 'reason-holo', name: 'Reason Gaming (Holo)',      mono: 'RG',   kind: 'Holo',  accent: '#c58bff', base: 62000,  listMul: 1, img: 'stickers/reason-holo.png', hash: 'Sticker | Reason Gaming (Holo) | Katowice 2014' },
+  { id: 'vox-holo',    name: 'Vox Eminor (Holo)',         mono: 'VE',   kind: 'Holo',  accent: '#ff9e5e', base: 38000,  listMul: 1, img: 'stickers/vox-holo.png',    hash: 'Sticker | Vox Eminor (Holo) | Katowice 2014' },
+];
+
+/* =====================================================================
+   SMALL HELPERS
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const usd = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usdShort = n => n >= 1000 ? '$' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : '$' + n.toFixed(0);
+const pct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const lastPx = m => m.px[m.px.length - 1];
+
+function bisect(arr, x) {            // index of the value nearest to x
+  let lo = 0, hi = arr.length - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; arr[mid] < x ? lo = mid + 1 : hi = mid; }
+  return lo > 0 && Math.abs(arr[lo - 1] - x) < Math.abs(arr[lo] - x) ? lo - 1 : lo;
+}
+
+/* Placeholder shown whenever a sticker PNG is missing */
+function placeholder(it) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <defs><radialGradient id="g" cx=".5" cy=".4" r=".75"><stop offset="0" stop-color="${it.accent}" stop-opacity=".5"/><stop offset="1" stop-color="${it.accent}" stop-opacity=".06"/></radialGradient></defs>
+    <rect width="120" height="120" rx="26" fill="url(#g)"/>
+    <rect x="1.5" y="1.5" width="117" height="117" rx="25" fill="none" stroke="${it.accent}" stroke-opacity=".55" stroke-width="2" stroke-dasharray="5 6"/>
+    <text x="60" y="66" text-anchor="middle" font-family="Arial,sans-serif" font-size="${it.mono.length > 3 ? 26 : 32}" font-weight="700" fill="#fff" fill-opacity=".88">${it.mono}</text>
+    <text x="60" y="88" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#fff" fill-opacity=".55">${it.kind}</text></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+function setStickerImg(el, it) {
+  el.onerror = () => { el.onerror = null; el.src = placeholder(it); };
+  el.src = it.img;
+}
+
+/* =====================================================================
+   DATA LAYER
+   Every source must return:
+   [{ id, name, url, count, ts: [ms...], px: [usd...] }]   (ts ascending)
+   ===================================================================== */
+async function fetchApi(item) {
+  const res = await fetch(`${CONFIG.apiUrl}?item=${encodeURIComponent(item.hash)}`, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error('API ' + res.status);
+  return normalizeApi(await res.json());
+}
+/* EDIT to match what your proxy returns (e.g. Pricempire's price + history endpoints). */
+function normalizeApi(json) {
+  return json.markets.map(m => ({
+    id: m.id, name: m.name, url: m.url, count: m.count,
+    ts: m.history.map(p => p[0]),
+    px: m.history.map(p => p[1]),
+  }));
+}
+
+/* 'file' source: data/prices.json written by the GitHub Action (scripts/fetch-prices.mjs) */
+let fileDb = null, fileAt = 0;
+async function fetchFile(item) {
+  if (!fileDb || Date.now() - fileAt > 30_000) {
+    const res = await fetch(`${CONFIG.dataUrl}?v=${Math.floor(Date.now() / 60000)}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('prices.json ' + res.status);
+    fileDb = await res.json(); fileAt = Date.now();
+  }
+  const rec = fileDb.items?.[item.hash] || {};
+  const markets = Object.entries(rec.markets || {}).map(([id, m]) => ({
+    id, name: m.name, url: m.url, count: m.count,
+    ts: m.t.map(s => s * 1000), px: m.p,
+  }));
+  const h = rec.history;
+  const hist = h && h.t.length ? { id: '__all', name: 'Lowest overall', url: '', ts: h.t.map(s => s * 1000), px: h.p, color: '#ece6d6', thick: true } : null;
+  return { markets, hist };
+}
+
+const DEMO_MARKETS = [
+  { id: 'steam',    name: 'Steam Market', url: 'https://steamcommunity.com/market/', base: 1.00, count: 3 },
+  { id: 'skinport', name: 'Skinport',     url: 'https://skinport.com/',              base: 0.86, count: 4 },
+  { id: 'csfloat',  name: 'CSFloat',      url: 'https://csfloat.com/',               base: 0.84, count: 2 },
+  { id: 'buff',     name: 'BUFF163',      url: 'https://buff.163.com/',              base: 0.80, count: 6 },
+  { id: 'dmarket',  name: 'DMarket',      url: 'https://dmarket.com/',               base: 0.88, count: 3 },
+  { id: 'waxpeer',  name: 'Waxpeer',      url: 'https://waxpeer.com/',               base: 0.85, count: 1 },
+];
+const demoStore = {};
+function demoTick(item) {
+  let d = demoStore[item.id];
+  if (!d) {
+    const now = Date.now(), HOUR = 36e5, N = 365 * 24;
+    let drift = item.base;
+    d = demoStore[item.id] = DEMO_MARKETS.map(m => ({ ...m, count: Math.max(1, Math.round(m.count * item.listMul)), ts: [], px: [], k: 0 }));
+    for (let i = N; i >= 0; i--) {
+      drift *= 1 + (Math.random() - 0.48) * 0.006;
+      d.forEach(m => {
+        m.k += (Math.random() - 0.5) * 0.004; m.k *= 0.98;
+        m.ts.push(now - i * HOUR); m.px.push(Math.max(1, drift * m.base * (1 + m.k)));
+      });
+    }
+  } else d.forEach(m => {
+    m.ts.push(Date.now());
+    m.px.push(Math.max(1, lastPx(m) * (1 + (Math.random() - 0.5) * 0.004)));
+    if (Math.random() < 0.15) m.count = Math.max(1, m.count + (Math.random() < 0.5 ? -1 : 1));
+  });
+  return d.map(m => ({ id: m.id, name: m.name, url: m.url, count: m.count, ts: m.ts, px: m.px }));
+}
+
+/* =====================================================================
+   STATE + LOADING
+   ===================================================================== */
+const PALETTE = ['#7EC8E3', '#e0463f', '#f2b24c', '#5fd38d', '#c792ea', '#ff8fb1', '#5eead4', '#a3a3ff'];
+const RANGES = [
+  { id: '24h', label: '24H', ms: 864e5 }, { id: '7d', label: '7D', ms: 7 * 864e5 },
+  { id: '30d', label: '30D', ms: 30 * 864e5 }, { id: '90d', label: '90D', ms: 90 * 864e5 },
+  { id: '1y', label: '1Y', ms: 365 * 864e5 }, { id: 'all', label: 'All', ms: Infinity },
+];
+const state = { idx: 0, range: '1y', scale: 'lin', showAll: false, hidden: new Set(), hover: null, cache: {} };
+const cur = () => ITEMS[state.idx];
+const entry = () => state.cache[cur().id];
+const markets = () => entry()?.markets || [];
+const allSeries = () => { const e = entry(); return e ? (e.hist ? [e.hist, ...e.markets] : e.markets) : []; };
+
+async function loadData(item = cur()) {
+  const dot = $('statusDot'), txt = $('statusText');
+  try {
+    const demo = CONFIG.source === 'demo';
+    const got = demo ? demoTick(item) : CONFIG.source === 'file' ? await fetchFile(item) : await fetchApi(item);
+    const data = Array.isArray(got) ? got : got.markets, hist = Array.isArray(got) ? null : got.hist;
+    data.forEach((m, i) => { m.color = PALETTE[i % PALETTE.length]; });
+    const stamp = CONFIG.source === 'file' && fileDb?.updated ? fileDb.updated : Date.now();
+    state.cache[item.id] = { markets: data, hist, updated: stamp, demo };
+    if (item === cur()) {
+      dot.className = 'dot' + (demo ? ' demo' : '');
+      txt.textContent = demo ? 'Demo data, not real prices'
+        : CONFIG.source === 'file' ? (fileDb?.updated ? 'Updated ' + new Date(fileDb.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Waiting for the first price update')
+        : 'Live';
+    }
+    if (item === cur() && !data.length && !hist) {
+      $('rows').innerHTML = '<tr><td colspan="7" class="skeleton">No prices collected for this sticker yet. They appear after the next scheduled update.</td></tr>';
+      $('facts').innerHTML = ''; $('legend').innerHTML = ''; $('bigPrice').textContent = '—'; $('bigSub').textContent = '';
+      cctx.clearRect(0, 0, cv.width, cv.height); $('tip').style.display = 'none';
+    }
+  } catch (err) {
+    console.warn('Price load failed:', err);
+    if (item === cur()) { dot.className = 'dot err'; txt.textContent = 'Could not load prices. Retrying…'; }
+  }
+  if (item === cur()) render();
+}
+
+function change24h(m) {
+  const i = bisect(m.ts, m.ts[m.ts.length - 1] - 864e5);
+  return (lastPx(m) / m.px[i] - 1) * 100;
+}
+
+/* =====================================================================
+   SLIDER
+   ===================================================================== */
+function buildRail() {
+  $('rail').innerHTML = ITEMS.map((it, i) =>
+    `<button class="thumb" role="tab" type="button" data-i="${i}" aria-selected="false"><img alt="" width="30" height="30" loading="lazy" decoding="async" />${it.name.replace(' (Holo)', ' Holo').replace(/^Ninjas in Pyjamas$/, 'NiP').replace('Ninjas in Pyjamas Holo', 'NiP Holo').replace('Team LDLC.com', 'LDLC').replace(/^LDLC Holo$/, 'LDLC Holo')}${it.kind === 'Paper' ? ' Paper' : ''}</button>`).join('');
+  [...$('rail').children].forEach((b, i) => setStickerImg(b.querySelector('img'), ITEMS[i]));
+}
+function select(i, dir = 0, instant = false) {
+  const n = ITEMS.length;
+  state.idx = (i + n) % n;
+  state.hover = null;
+  const it = cur(), stage = $('stage');
+
+  const apply = () => {
+    document.getElementById('market').style.setProperty('--accent', it.accent);
+    setStickerImg($('itemImg'), it);
+    $('itemName').textContent = it.name;
+    $('itemSub').textContent = `${it.kind === 'Holo' ? 'Holo sticker' : 'Paper sticker'} from Katowice 2014`;
+    [...$('rail').children].forEach((b, k) => b.setAttribute('aria-selected', k === state.idx));
+    const t = $('rail').children[state.idx];
+    const rl = $('rail'), rr = rl.getBoundingClientRect(), tr = t.getBoundingClientRect();
+    rl.scrollTo({ left: Math.max(0, rl.scrollLeft + (tr.left - rr.left) - (rl.clientWidth - t.offsetWidth) / 2), behavior: instant ? 'auto' : 'smooth' });
+    $('bigPrice').textContent = '—'; $('bigSub').textContent = '';
+    if (!state.cache[it.id]) { $('rows').innerHTML = '<tr><td colspan="7" class="skeleton">Loading…</td></tr>'; $('facts').innerHTML = ''; $('legend').innerHTML = ''; cctx.clearRect(0, 0, cv.width, cv.height); $('tip').style.display = 'none'; }
+    if (state.cache[it.id]) render();
+    loadData(it);
+    stage.classList.remove('swap');
+  };
+
+  if (instant || matchMedia('(prefers-reduced-motion: reduce)').matches) return apply();
+  stage.style.setProperty('--shift', (dir >= 0 ? -14 : 14) + 'px');
+  stage.classList.add('swap');
+  setTimeout(apply, 170);
+}
+$('prev').addEventListener('click', () => select(state.idx - 1, -1));
+$('next').addEventListener('click', () => select(state.idx + 1, 1));
+(function railScroll() {
+  const rl = $('rail');
+  const fades = () => {
+    rl.classList.toggle('fade-l', rl.scrollLeft > 4);
+    rl.classList.toggle('fade-r', rl.scrollLeft < rl.scrollWidth - rl.clientWidth - 4);
+  };
+  rl.addEventListener('scroll', fades, { passive: true });
+  addEventListener('resize', fades);
+  setTimeout(fades, 0); setTimeout(fades, 400);
+  // mouse wheel scrolls the rail sideways
+  rl.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && rl.scrollWidth > rl.clientWidth) { rl.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
+  // click and drag
+  let down = false, sx = 0, sl = 0, moved = false;
+  rl.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; down = true; moved = false; sx = e.clientX; sl = rl.scrollLeft; });
+  addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - sx;
+    if (Math.abs(dx) > 5) { moved = true; rl.classList.add('dragging'); }
+    if (moved) rl.scrollLeft = sl - dx;
+  });
+  addEventListener('pointerup', () => { down = false; setTimeout(() => rl.classList.remove('dragging'), 0); });
+  rl.addEventListener('click', e => { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+})();
+$('rail').addEventListener('click', e => {
+  const b = e.target.closest('[data-i]'); if (!b) return;
+  const i = +b.dataset.i; if (i !== state.idx) select(i, i > state.idx ? 1 : -1);
+});
+/* swipe on the stage */
+let sx = null;
+$('stage').addEventListener('pointerdown', e => { sx = e.clientX; });
+$('stage').addEventListener('pointerup', e => {
+  if (sx == null) return;
+  const dx = e.clientX - sx; sx = null;
+  if (Math.abs(dx) > 50) select(state.idx + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+});
+/* left / right arrow keys while the price section is on screen */
+let marketVisible = false;
+new IntersectionObserver(([e]) => { marketVisible = e.isIntersecting; }, { threshold: 0.2 }).observe($('market'));
+document.addEventListener('keydown', e => {
+  if (!marketVisible || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'ArrowLeft') select(state.idx - 1, -1);
+  if (e.key === 'ArrowRight') select(state.idx + 1, 1);
+});
+
+/* =====================================================================
+   RENDER: headline, facts, legend, table
+   ===================================================================== */
+function legendHtml() {
+  return allSeries().map(m =>
+    `<button type="button" data-id="${m.id}" style="--c:${m.thick ? 'var(--accent)' : m.color}" aria-pressed="${!state.hidden.has(m.id)}"><i></i>${m.name}</button>`).join('');
+}
+function render() {
+  const ms = markets(), e = entry();
+  if (!ms.length) {
+    if (!e?.hist) return;
+    $('bigPrice').textContent = usd(lastPx(e.hist));
+    $('bigSub').textContent = 'Last recorded price. Prices per market appear after the next update.';
+    $('facts').innerHTML = '';
+    $('rows').innerHTML = '<tr><td colspan="7" class="skeleton">Prices per market appear after the next scheduled update.</td></tr>';
+    $('legend').innerHTML = legendHtml();
+    $('note').textContent = 'The chart shows the lowest price recorded each day since the sticker was released.';
+    drawChart();
+    return;
+  }
+  const sorted = [...ms].sort((a, b) => lastPx(a) - lastPx(b));
+  const cheapest = sorted[0], top = sorted[sorted.length - 1];
+  const avg = ms.reduce((s, m) => s + lastPx(m), 0) / ms.length;
+  const avgChange = ms.reduce((s, m) => s + change24h(m), 0) / ms.length;
+  const listings = ms.reduce((s, m) => s + (m.count || 0), 0);
+  const spread = (lastPx(top) / lastPx(cheapest) - 1) * 100;
+
+  $('bigPrice').textContent = usd(lastPx(cheapest));
+  $('bigSub').innerHTML = `Lowest on ${cheapest.name}, <span class="${avgChange >= 0 ? 'up' : 'down'}">${pct(avgChange)}</span> in 24h`;
+
+  $('facts').innerHTML = `
+    <div class="fact"><dt>Average across markets</dt><dd>${usd(avg)}</dd></div>
+    <div class="fact"><dt>Gap, cheapest to priciest</dt><dd>${spread.toFixed(1)}%</dd></div>
+    <div class="fact"><dt>Open listings</dt><dd>${listings}</dd></div>
+    <div class="fact"><dt>Markets tracked</dt><dd>${ms.length}</dd></div>`;
+
+  $('legend').innerHTML = legendHtml();
+
+  const TOP = 5, shown = state.showAll ? sorted : sorted.slice(0, TOP);
+  $('rows').innerHTML = shown.map((m, i) => {
+    const p = lastPx(m), c = change24h(m), diff = (p / lastPx(cheapest) - 1) * 100;
+    return `<tr class="${i === 0 ? 'best' : ''}">
+      <td class="rk">${i + 1}</td>
+      <td><span class="mkt" style="--c:${m.color}"><i></i>${m.name}${i === 0 ? ' <span class="tag">Lowest</span>' : ''}</span></td>
+      <td class="num"><b>${usd(p)}</b></td>
+      <td class="num">${i === 0 ? '—' : pct(diff)}</td>
+      <td class="num ${c >= 0 ? 'up' : 'down'}">${pct(c)}</td>
+      <td class="num">${m.count ?? '—'}</td>
+      <td class="num"><a class="buy" href="${m.url}" target="_blank" rel="noopener noreferrer">View listing</a></td>
+    </tr>`;
+  }).join('');
+
+  const more = $('moreRows'), extra = sorted.length - TOP;
+  more.hidden = extra <= 0;
+  more.textContent = state.showAll ? 'Show top 5 only' : `Show ${extra} more market${extra === 1 ? '' : 's'}`;
+  $('rowsSub').textContent = sorted.length > TOP && !state.showAll ? `The ${TOP} cheapest of ${sorted.length} markets, cheapest first.` : 'Every tracked market, cheapest first.';
+
+  $('note').textContent = e.demo
+    ? 'Prices on this page are generated sample data. Set CONFIG.source to "file" in the page source to show real prices.'
+    : `Lowest listing per market, in USD. Checked every hour, last on ${new Date(e.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}. The filled line is the lowest price across all markets since release, and the market lines start when price tracking began.`;
+  drawChart();
+}
+$('legend').addEventListener('click', e => {
+  const b = e.target.closest('button[data-id]'); if (!b) return;
+  state.hidden.has(b.dataset.id) ? state.hidden.delete(b.dataset.id) : state.hidden.add(b.dataset.id);
+  if (state.hidden.size === allSeries().length) state.hidden.clear();
+  render();
+});
+$('ranges').innerHTML = RANGES.map(r => `<button class="range" type="button" data-r="${r.id}" aria-pressed="${r.id === state.range}">${r.label}</button>`).join('');
+$('moreRows').addEventListener('click', () => { state.showAll = !state.showAll; render(); });
+$('scales').addEventListener('click', e => {
+  const b = e.target.closest('[data-s]'); if (!b) return;
+  state.scale = b.dataset.s;
+  document.querySelectorAll('#scales .range').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === state.scale));
+  drawChart();
+});
+$('ranges').addEventListener('click', e => {
+  const b = e.target.closest('[data-r]'); if (!b) return;
+  state.range = b.dataset.r;
+  document.querySelectorAll('#ranges .range').forEach(x => x.setAttribute('aria-pressed', x.dataset.r === state.range));
+  drawChart();
+});
+
+/* =====================================================================
+   CHART (dependency-free canvas)
+   ===================================================================== */
+const cv = $('chart'), cctx = cv.getContext('2d');
+const PAD = { l: 58, r: 12, t: 12, b: 28 };
+
+function visibleSeries() {
+  const r = RANGES.find(x => x.id === state.range);
+  return allSeries().filter(m => !state.hidden.has(m.id)).map(m => {
+    const end = m.ts[m.ts.length - 1];
+    const from = r.ms === Infinity ? -Infinity : end - r.ms;
+    let s = bisect(m.ts, from); if (m.ts[s] < from) s++;
+    const step = Math.max(1, Math.ceil((m.ts.length - s) / 3000));
+    const pts = [];
+    for (let i = s; i < m.ts.length; i += step) pts.push([m.ts[i], m.px[i]]);
+    const L = m.ts.length - 1;
+    if (!pts.length || pts[pts.length - 1][0] !== m.ts[L]) pts.push([m.ts[L], m.px[L]]);
+    return { m, pts };
+  });
+}
+const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
+const accentNow = () => getComputedStyle($('market')).getPropertyValue('--accent').trim() || '#5b9bff';
+const colorOf = m => m.thick ? accentNow() : m.color;
+const GAP_MS = 21 * 864e5;           // longer than this between two points = no data recorded
+
+/* split a series into runs of points that are close enough to join */
+function runsOf(pts) {
+  const runs = [[pts[0]]];
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i][0] - pts[i - 1][0] > GAP_MS) runs.push([pts[i]]); else runs[runs.length - 1].push(pts[i]);
+  }
+  return runs;
+}
+
+function drawChart() {
+  if (!allSeries().length) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  cctx.setTransform(dpr, 0, 0, dpr, 0, 0); cctx.clearRect(0, 0, W, H);
+
+  const series = visibleSeries();
+  let t0 = Infinity, t1 = -Infinity, lo = Infinity, hi = -Infinity;
+  series.forEach(({ pts }) => pts.forEach(([t, p]) => { if (t < t0) t0 = t; if (t > t1) t1 = t; if (p < lo) lo = p; if (p > hi) hi = p; }));
+  if (!isFinite(t0)) return;
+  const font = getComputedStyle(document.body).fontFamily;
+  if (series.every(s => s.pts.length < 2)) {
+    cctx.fillStyle = 'rgba(236,230,214,.56)'; cctx.textAlign = 'center'; cctx.textBaseline = 'middle';
+    cctx.font = '15px ' + font;
+    cctx.fillText('The chart fills in as prices are collected. Check back after the next update.', W / 2, H / 2);
+    $('tip').style.display = 'none';
+    return;
+  }
+  if (t0 === t1) t1 = t0 + 1;
+
+  const log = state.scale === 'log' && lo > 0;
+  const f = log ? Math.log : v => v;
+  if (log) { lo = Math.max(lo * 0.8, 0.5); hi *= 1.25; }
+  else { const nonNeg = lo >= 0; const pad = (hi - lo || hi * 0.02) * 0.1; lo -= pad; hi += pad; if (nonNeg && lo < 0) lo = 0; }
+  const yLo = f(lo), yHi = f(hi), top = PAD.t, bot = H - PAD.b, left = PAD.l, right = W - PAD.r;
+  const x = t => left + (t - t0) / (t1 - t0) * (right - left);
+  const y = p => top + (1 - (f(p) - yLo) / (yHi - yLo)) * (bot - top);
+
+  /* y grid + labels */
+  let ticks = [];
+  if (log) {
+    const k0 = Math.floor(Math.log10(lo)), k1 = Math.ceil(Math.log10(hi)), mult = (k1 - k0) <= 3 ? [1, 2, 5] : [1];
+    for (let k = k0; k <= k1; k++) for (const m of mult) { const v = m * 10 ** k; if (v >= lo && v <= hi) ticks.push(v); }
+  }
+  if (ticks.length < 2) { ticks = []; for (let i = 0; i <= 4; i++) ticks.push(lo + (hi - lo) * i / 4); }
+  cctx.font = '11.5px ' + font; cctx.textBaseline = 'middle'; cctx.textAlign = 'right';
+  cctx.lineWidth = 1; cctx.setLineDash([1, 5]); cctx.lineCap = 'round';
+  ticks.forEach(p => {
+    const yy = Math.round(y(p)) + .5;
+    cctx.strokeStyle = 'rgba(236,230,214,.16)';
+    cctx.beginPath(); cctx.moveTo(left, yy); cctx.lineTo(right, yy); cctx.stroke();
+    cctx.fillStyle = 'rgba(236,230,214,.5)'; cctx.fillText(usdShort(p), left - 10, yy);
+  });
+  cctx.setLineDash([]); cctx.lineCap = 'butt';
+
+  /* x labels */
+  cctx.textBaseline = 'top';
+  const span = t1 - t0;
+  for (let i = 0; i <= 4; i++) {
+    const t = t0 + span * i / 4, d = new Date(t);
+    const lbl = span <= 2 * 864e5 ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : span <= 400 * 864e5 ? d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+      : span <= 3 * 365 * 864e5 ? d.toLocaleDateString([], { month: 'short', year: 'numeric' })
+      : String(d.getFullYear());
+    cctx.textAlign = i === 0 ? 'left' : i === 4 ? 'right' : 'center';
+    cctx.fillStyle = 'rgba(236,230,214,.5)';
+    cctx.fillText(lbl, x(t), bot + 9);
+  }
+
+  /* series. The all-time line first (area, then line), market lines on top. */
+  const trace = (run, stepped) => {
+    run.forEach(([t, p], i) => {
+      if (!i) cctx.moveTo(x(t), y(p));
+      else { if (stepped && t - run[i - 1][0] <= 3 * 864e5) cctx.lineTo(x(t), y(run[i - 1][1])); cctx.lineTo(x(t), y(p)); }
+    });
+  };
+  cctx.save(); cctx.beginPath(); cctx.rect(left - 2, top - 4, right - left + 4, bot - top + 8); cctx.clip();
+  const ordered = [...series.filter(s => s.m.thick), ...series.filter(s => !s.m.thick)];
+  ordered.forEach(({ m, pts }) => {
+    const col = colorOf(m), runs = runsOf(pts);
+    if (m.thick) {
+      const g = cctx.createLinearGradient(0, top, 0, bot);
+      g.addColorStop(0, hexA(col, .30)); g.addColorStop(1, hexA(col, 0));
+      runs.forEach(run => {
+        if (run.length < 2) return;
+        cctx.beginPath(); trace(run, true);
+        cctx.lineTo(x(run[run.length - 1][0]), bot); cctx.lineTo(x(run[0][0]), bot); cctx.closePath();
+        cctx.fillStyle = g; cctx.fill();
+      });
+      cctx.setLineDash([2, 5]); cctx.lineWidth = 1.2; cctx.strokeStyle = hexA(col, .55);   // stretches with no recorded prices
+      for (let i = 1; i < runs.length; i++) {
+        const a = runs[i - 1][runs[i - 1].length - 1], b = runs[i][0];
+        cctx.beginPath(); cctx.moveTo(x(a[0]), y(a[1])); cctx.lineTo(x(b[0]), y(b[1])); cctx.stroke();
+      }
+      cctx.setLineDash([]);
+    }
+    cctx.lineJoin = 'round'; cctx.lineCap = 'round';
+    cctx.lineWidth = m.thick ? 1.7 : 1.5; cctx.strokeStyle = col;
+    if (m.thick) { cctx.shadowColor = hexA(col, .5); cctx.shadowBlur = 9; }
+    runs.forEach(run => { cctx.beginPath(); trace(run, m.thick); cctx.stroke(); });
+    cctx.shadowBlur = 0; cctx.shadowColor = 'transparent';
+  });
+  cctx.restore();
+  /* marker on the newest point of every line */
+  series.forEach(({ m, pts }) => {
+    const [t, p] = pts[pts.length - 1], col = colorOf(m);
+    cctx.beginPath(); cctx.arc(x(t), y(p), 6, 0, 7); cctx.fillStyle = hexA(col, .22); cctx.fill();
+    cctx.beginPath(); cctx.arc(x(t), y(p), 2.8, 0, 7); cctx.fillStyle = col; cctx.fill();
+  });
+
+  const tip = $('tip');
+  if (state.hover == null) { tip.style.display = 'none'; return; }
+  const hx = state.hover, t = t0 + (hx - left) / (right - left) * (t1 - t0);
+  cctx.strokeStyle = 'rgba(236,230,214,.35)'; cctx.lineWidth = 1; cctx.setLineDash([3, 4]);
+  cctx.beginPath(); cctx.moveTo(Math.round(hx) + .5, top); cctx.lineTo(Math.round(hx) + .5, bot); cctx.stroke(); cctx.setLineDash([]);
+  const tol = Math.max(1.5 * 864e5, (t1 - t0) / 60);
+  const rows = series.map(({ m, pts }) => {
+    if (t < pts[0][0] - tol || t > pts[pts.length - 1][0] + tol) return null;   // no data for this line at this date
+    const i = bisect(pts.map(p => p[0]), t);
+    const col = colorOf(m);
+    cctx.beginPath(); cctx.arc(x(pts[i][0]), y(pts[i][1]), 7, 0, 7); cctx.fillStyle = hexA(col, .2); cctx.fill();
+    cctx.beginPath(); cctx.arc(x(pts[i][0]), y(pts[i][1]), 3.6, 0, 7); cctx.fillStyle = col; cctx.fill();
+    cctx.lineWidth = 1.5; cctx.strokeStyle = '#0f0c12'; cctx.stroke();
+    return { m, p: pts[i][1], t: pts[i][0], col };
+  }).filter(Boolean).sort((a, b) => a.p - b.p);
+  if (!rows.length) { tip.style.display = 'none'; return; }
+
+  /* readout pills on the axes */
+  const pill = (txt, cx, cy, clampL, clampR) => {
+    cctx.font = '600 11.5px ' + font; cctx.textAlign = 'center'; cctx.textBaseline = 'middle';
+    const w = cctx.measureText(txt).width + 14, h = 20;
+    const px = Math.min(Math.max(cx - w / 2, clampL), clampR - w);
+    cctx.beginPath(); (cctx.roundRect || cctx.rect).call(cctx, px, cy - h / 2, w, h, 6);
+    cctx.fillStyle = 'rgba(236,230,214,.94)'; cctx.fill();
+    cctx.fillStyle = '#0f0c12'; cctx.fillText(txt, px + w / 2, cy + .5);
+  };
+  const lead = rows.find(r => r.m.thick) || rows[0];
+  pill(usdShort(lead.p), left / 2 + 2, y(lead.p), 0, left - 2);
+  const dd = new Date(lead.t);
+  pill(span <= 2 * 864e5 ? dd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : dd.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }), x(lead.t), bot + 17, left, W);
+
+  tip.innerHTML = `<div class="t">${new Date(rows[0].t).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>` +
+    rows.map(r => `<div class="row"><span><i style="background:${r.col}"></i>${r.m.name}</span><b>${usd(r.p)}</b></div>`).join('');
+  tip.style.display = 'block';
+  const rightSide = hx > W / 2;
+  tip.style.left = rightSide ? 'auto' : (hx + 14) + 'px';
+  tip.style.right = rightSide ? (W - hx + 14) + 'px' : 'auto';
+}
+function setHover(e) {
+  const r = cv.getBoundingClientRect();
+  state.hover = Math.min(Math.max(e.clientX - r.left, PAD.l), r.width - PAD.r);
+  drawChart();
+}
+cv.addEventListener('pointermove', setHover);
+cv.addEventListener('pointerdown', setHover);
+cv.addEventListener('pointerleave', () => { state.hover = null; drawChart(); });
+new ResizeObserver(() => drawChart()).observe(cv);
+
+/* poll only while the tab is visible */
+setInterval(() => { if (!document.hidden) loadData(); }, CONFIG.refreshMs);
+document.addEventListener('visibilitychange', () => {
+  const e = entry(); if (!document.hidden && (!e || Date.now() - e.updated > CONFIG.refreshMs)) loadData();
+});
+buildRail();
+select(0, 0, true);
+
+/* =====================================================================
+   HERO MEDIA: png / gif / webp stay as <img>; mp4 / webm become a looping <video>
+   ===================================================================== */
+(function mountHeroMedia() {
+  const img = $('heroMediaEl');
+  const src = img.getAttribute('src').split('?')[0];
+  if (!/\.(mp4|webm)$/i.test(src)) return;
+  const v = document.createElement('video');
+  Object.assign(v, { src: img.getAttribute('src'), autoplay: true, loop: true, muted: true, playsInline: true, preload: 'auto' });
+  v.setAttribute('muted', ''); v.setAttribute('aria-label', img.alt);
+  img.replaceWith(v);
+  v.play().catch(() => {});
+})();
+
+/* =====================================================================
+   HERO: respect counter, easter eggs, physics stickers
+   ===================================================================== */
+const hero = $('hero');
+const imageFiles = [
+  "360fx360f1.png", "360fx360f2.png", "360fx360f3.png", "360fx360f8.png",
+  "360fx360f4.png", "360fx360f5.png", "360fx360f6.png", "360fx360f.png",
+  "360fx360f.png", "360fx360f01.png", "360fx360f7.png", "360fx360f.png", "360fx360f9.png"
+];
+const specialIndex = 3, specialNewImage = "360fx360f.png", largeIndex = 8;
+const NUM_BALLS = 13, RESTITUTION = 0.85, FRICTION_AIR = 0.02;
+const COUNTER_NAMESPACE = "titanholo-ciggydogg", COUNTER_KEY = "respect-count";
+const MAC10_TRIGGER = 5, RICKROLL_TRIGGER = 50, EMOJI_COUNT = 10;
+
+let respectCount = 0, sessionClicks = 0, mac10Spawned = false, rickrolled = false;
+let hitQueue = Promise.resolve();
+const balls = [], imgCache = new Map(), sfx = {};
+const audio = src => (sfx[src] ||= new Audio(src));
+
+function loadImage(src) {
+  if (!imgCache.has(src)) imgCache.set(src, new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => { console.warn("Failed to load image:", src); res(null); };
+    im.src = src;
+  }));
+  return imgCache.get(src);
+}
+function createSparkles(x, y) {
+  const colors = ['#FFD700', '#FFA500', '#FF69B4', '#00CED1', '#7EC8E3'];
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle'; s.textContent = '✨';
+    s.style.left = x + 'px'; s.style.top = y + 'px';
+    s.style.color = colors[Math.floor(Math.random() * colors.length)];
+    s.style.fontSize = (Math.random() * 20 + 15) + 'px';
+    s.style.setProperty('--tx', (Math.random() - 0.5) * 150 + 'px');
+    s.style.setProperty('--ty', (Math.random() - 0.5) * 150 + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 600);
+  }
+}
+function showPlusOne(x, y) {
+  const p = document.createElement('div');
+  p.className = 'plus-one'; p.textContent = '+1';
+  p.style.left = x + 'px'; p.style.top = y + 'px';
+  document.body.appendChild(p); setTimeout(() => p.remove(), 1500);
+}
+const updateFCountDisplay = () => { $('fCount').textContent = respectCount.toLocaleString(); };
+const showHint = t => { $('secretHint').textContent = t; };
+const repeatEmoji = (e, n) => Array(n).fill(e).join(' ');
+
+async function fetchInitialCount() {
+  try {
+    const res = await fetch(`https://abacus.jasoncameron.dev/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+    respectCount = (await res.json()).value || 0;
+  } catch (err) { console.warn("Shared counter unreachable:", err); }
+  updateFCountDisplay();
+}
+function queueHit() {
+  hitQueue = hitQueue.then(async () => {
+    try {
+      const res = await fetch(`https://abacus.jasoncameron.dev/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+      const data = await res.json();
+      respectCount = typeof data.value === "number" ? Math.max(respectCount, data.value) : respectCount + 1;
+    } catch { respectCount++; }
+    updateFCountDisplay();
+  });
+}
+function updateRespect(x, y) {
+  createSparkles(x, y); showPlusOne(x, y);
+  sessionClicks++;
+  if (sessionClicks === MAC10_TRIGGER && !mac10Spawned) {
+    mac10Spawned = true;
+    audio("Vine Boom.mp3").play().catch(() => {});
+    showHint(repeatEmoji('😂', EMOJI_COUNT));
+    createBall(0, 120, "Mac10Heat.png");
+  }
+  if (sessionClicks === RICKROLL_TRIGGER && !rickrolled) {
+    rickrolled = true;
+    showHint(repeatEmoji('☠️', EMOJI_COUNT));
+    const url = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=0';
+    if (!window.open(url, '_blank')) window.location.href = url;
+  }
+  queueHit();
+}
+$('pressF').addEventListener('click', e => updateRespect(e.clientX, e.clientY));
+document.addEventListener('keydown', e => {
+  if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const r = $('pressF').getBoundingClientRect();
+    updateRespect(r.left + r.width / 2, r.top + r.height / 2);
+  }
+});
+$('madeBy').addEventListener('click', () => window.open("https://guns.lol/ciggydogg", "_blank", "noopener"));
+setTimeout(() => $('madeBy').classList.add('visible'), 6000);
+fetchInitialCount();
+
+/* ---- physics (Matter.js loaded after first paint) ---- */
+let M, engine, world, render_, runner, walls = [], heroW = 0, heroH = 0, running = false;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function measure() { const r = hero.getBoundingClientRect(); heroW = Math.round(r.width); heroH = Math.round(r.height); }
+function buildWalls() {
+  M.World.remove(world, walls);
+  walls = [
+    M.Bodies.rectangle(heroW / 2, heroH + 50, heroW + 400, 100, { isStatic: true }),
+    M.Bodies.rectangle(-50, heroH / 2, 100, heroH * 3, { isStatic: true }),
+    M.Bodies.rectangle(heroW + 50, heroH / 2, 100, heroH * 3, { isStatic: true }),
+    M.Bodies.rectangle(heroW / 2, -600, heroW + 400, 100, { isStatic: true }),
+  ];
+  M.World.add(world, walls);
+}
+function resizePhysics() {
+  measure();
+  const c = render_.canvas;
+  c.width = heroW; c.height = heroH;
+  render_.options.width = heroW; render_.options.height = heroH;
+  render_.bounds.max.x = heroW; render_.bounds.max.y = heroH;
+  buildWalls();
+  balls.forEach(b => {
+    const r = b.circleRadius;
+    if (b.position.x > heroW - r) M.Body.setPosition(b, { x: heroW - r, y: b.position.y });
+    if (b.position.y > heroH - r) M.Body.setPosition(b, { x: b.position.x, y: heroH - r });
+  });
+}
+async function createBall(i, customRadius = null, customImage = null, makeSpecial = false) {
+  const imgSrc = customImage || imageFiles[i] || "";
+  const radius = customRadius || (i === largeIndex ? 80 : 60);
+  const opts = { restitution: RESTITUTION, frictionAir: FRICTION_AIR, render: { fillStyle: "#ece6d6", strokeStyle: "#e0463f", lineWidth: 2 } };
+  if (imgSrc && await loadImage(imgSrc)) {
+    const scale = customImage === "Mac10Heat.png" ? (radius * 2) / 501 : ((radius * 2) / 360) * 1.8;
+    opts.render.sprite = { texture: imgSrc, xScale: scale, yScale: scale };
+  }
+  const x = Math.random() * Math.max(1, heroW - 2 * radius) + radius;
+  const y = Math.random() * (heroH / 2) + radius;
+  const ball = M.Bodies.circle(x, y, radius, opts);
+  ball.isSpecial = makeSpecial || i === specialIndex;
+  ball.trailPoints = [];
+  M.World.add(world, ball); balls.push(ball);
+  M.Body.setVelocity(ball, { x: (Math.random() - 0.5) * 10, y: Math.random() * -10 });
+  return ball;
+}
+async function initBalls() {
+  await Promise.all(imageFiles.map(loadImage));
+  for (let i = 0; i < NUM_BALLS; i++) await createBall(i);
+}
+function drawTrails(ctx) {
+  ctx.globalCompositeOperation = 'destination-over';
+  for (const ball of balls) {
+    const speed = Math.hypot(ball.velocity.x, ball.velocity.y);
+    if (speed > 5) {
+      ball.trailPoints.push({ x: ball.position.x, y: ball.position.y, alpha: 1 });
+      if (ball.trailPoints.length > 15) ball.trailPoints.shift();
+    } else if (ball.trailPoints.length) ball.trailPoints.length = 0;
+    const n = ball.trailPoints.length;
+    for (let i = 0; i < n; i++) {
+      const p = ball.trailPoints[i]; p.alpha -= 0.05;
+      if (p.alpha <= 0) continue;
+      const size = (i / n) * ball.circleRadius * 0.8;
+      if (size < 1) continue;
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size);
+      g.addColorStop(0, `rgba(126,200,227,${p.alpha * 0.6})`);
+      g.addColorStop(0.5, `rgba(224,70,63,${p.alpha * 0.4})`);
+      g.addColorStop(1, `rgba(255,215,0,${p.alpha * 0.2})`);
+      ctx.beginPath(); ctx.arc(p.x, p.y, size, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+function setRunning(on) {
+  if (!render_ || on === running) return;
+  running = on;
+  if (on) { M.Render.run(render_); M.Runner.run(runner, engine); }
+  else { M.Render.stop(render_); M.Runner.stop(runner); }
+}
+async function startPhysics() {
+  M = Matter; measure();
+  engine = M.Engine.create(); world = engine.world; engine.gravity.y = 1;
+  render_ = M.Render.create({ canvas: $('physicsCanvas'), engine, options: { width: heroW, height: heroH, wireframes: false, background: "transparent", pixelRatio: 1 } });
+  runner = M.Runner.create();
+  buildWalls();
+
+  const mouse = M.Mouse.create(render_.canvas), el = mouse.element;
+  el.removeEventListener('mousewheel', mouse.mousewheel);      // let the page scroll
+  el.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+  el.removeEventListener('touchmove', mouse.mousemove);
+  el.removeEventListener('touchstart', mouse.mousedown);
+  el.removeEventListener('touchend', mouse.mouseup);
+  const mc = M.MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
+  M.World.add(world, mc);
+
+  M.Events.on(mc, "startdrag", e => {
+    const body = e.body; if (!body || !body.isSpecial) return;
+    const s = audio("Quick Fart.mp3"); s.currentTime = 0; s.play().catch(() => {});
+    loadImage(specialNewImage).then(im => {
+      if (im && body.render.sprite) {
+        const k = ((body.circleRadius * 2) / 360) * 1.8;
+        Object.assign(body.render.sprite, { texture: specialNewImage, xScale: k, yScale: k });
+      }
+    });
+  });
+  M.Events.on(render_, 'afterRender', () => drawTrails(render_.context));
+
+  await initBalls();
+  if (reducedMotion) balls.forEach(b => M.Body.setVelocity(b, { x: 0, y: 0 }));
+
+  let visible = true;
+  const update = () => setRunning(visible && !document.hidden);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; update(); }).observe(hero);
+  document.addEventListener('visibilitychange', update);
+  update();
+
+  let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(resizePhysics, 120); }).observe(hero);
+
+  $('resetBtn').addEventListener('click', async () => {
+    balls.forEach(b => M.World.remove(world, b)); balls.length = 0;
+    await initBalls();
+    if (mac10Spawned) createBall(0, 120, "Mac10Heat.png");
+  });
+  $('addStickerBtn').addEventListener('click', () => {
+    const rand = Math.random();
+    const normal = imageFiles.filter((_, i) => i !== specialIndex);
+    const pick = () => normal[Math.floor(Math.random() * normal.length)];
+    if (rand < 0.05) createBall(balls.length, 60, imageFiles[specialIndex], true);
+    else if (rand < 0.20) createBall(balls.length, 80, pick());
+    else createBall(balls.length, 60, pick());
+  });
+}
+const lib = document.createElement('script');
+lib.src = 'https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js';
+lib.async = true; lib.onload = startPhysics;
+document.head.appendChild(lib);
+</script>
+</body>
+</html>
