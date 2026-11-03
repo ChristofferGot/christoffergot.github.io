@@ -267,7 +267,7 @@
        Change the src to any of: .png  .gif  .webp  .mp4  .webm
        GIFs animate and loop on their own. mp4/webm are swapped to a muted looping <video>. -->
   <figure class="media" id="heroMedia">
-    <img id="heroMediaEl" src="hero.gif" alt="Opening the Katowice 2014 container and pulling a sticker" fetchpriority="high" decoding="async" />
+    <img id="heroMediaEl" src="hero.mp4" data-fallback="hero.gif" alt="Opening the Katowice 2014 container and pulling a sticker" fetchpriority="high" decoding="async" />
   </figure>
 
   <canvas id="physicsCanvas" aria-hidden="true"></canvas>
@@ -894,6 +894,8 @@ select(0, 0, true);
   Object.assign(v, { src: img.getAttribute('src'), autoplay: true, loop: true, muted: true, playsInline: true, preload: 'auto' });
   v.setAttribute('muted', ''); v.setAttribute('aria-label', img.alt);
   img.replaceWith(v);
+  // if the video can't play for any reason, fall back to the GIF
+  v.addEventListener('error', () => { const fb = img.dataset.fallback; if (fb) { img.src = fb; v.replaceWith(img); } });
   v.play().catch(() => {});
 })();
 
